@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Candy Crush Benzeri</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .game-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        h1 {
+            color: #764ba2;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 20px;
+            gap: 20px;
+        }
+
+        .score-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            min-width: 150px;
+        }
+
+        .score-item h3 {
+            font-size: 0.9em;
+            margin-bottom: 5px;
+            opacity: 0.9;
+        }
+
+        .score-item p {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .game-board {
+            display: grid;
+            grid-template-columns: repeat(8, 50px);
+            grid-template-rows: repeat(8, 50px);
+            gap: 5px;
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 0 auto;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .candy {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 28px;
+            user-select: none;
+            border: 3px solid transparent;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .candy:hover {
+            transform: scale(1.1);
+            z-index: 10;
+        }
+
+        .candy.selected {
+            border-color: #fff;
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.8), 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: scale(1.15);
+        }
+
+        .candy.matched {
+            animation: pop 0.3s ease-out forwards;
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(1);
+                opacity: 1;
+            }
+            50% {
+                transform: scale(1.3);
+                opacity: 0.8;
+            }
+            100% {
+                transform: scale(0);
+                opacity: 0;
+            }
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .message {
+            margin-top: 15px;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: bold;
+            min-height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        @media (max-width: 500px) {
+            .game-board {
+                grid-template-columns: repeat(8, 40px);
+                grid-template-rows: repeat(8, 40px);
+                gap: 3px;
+                padding: 10px;
+            }
+
+            .candy {
+                width: 40px;
+                height: 40px;
+                font-size: 22px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .score-item {
+                padding: 10px 20px;
+                min-width: 120px;
+            }
+
+            .score-item p {
+                font-size: 1.4em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1>🍬 Candy Match 🍬</h1>
+        
+        <div class="score-board">
+            <div class="score-item">
+                <h3>Skor</h3>
+                <p id="score">0</p>
+            </div>
+            <div class="score-item">
+                <h3>Hareket</h3>
+                <p id="moves">20</p>
+            </div>
+            <div class="score-item">
+                <h3>En Yüksek</h3>
+                <p id="high-score">0</p>
+            </div>
+        </div>
+
+        <div class="game-board" id="game-board"></div>
+
+        <div class="message info" id="message">Şekerleri eşleştirmek için yan yana olanları seç!</div>
+
+        <div class="controls">
+            <button onclick="resetGame()">🔄 Yeni Oyun</button>
+            <button onclick="hint()">💡 İpucu</button>
+        </div>
+    </div>
+
+    <script>
+        const BOARD_SIZE = 8;
+        const CANDY_TYPES = ['🔴', '🟢', '🔵', '🟡', '🟣', '🟠'];
+        
+        let board = [];
+        let selectedCandy = null;
+        let score = 0;
+        let moves = 20;
+        let highScore = localStorage.getItem('candyHighScore') || 0;
+        let isProcessing = false;
+
+        document.getElementById('high-score').textContent = highScore;
+
+        function initBoard() {
+            board = [];
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                board[row] = [];
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    let candyType;
+                    do {
+                        candyType = CANDY_TYPES[Math.floor(Math.random() * CANDY_TYPES.length)];
+                    } while (
+                        (col >= 2 && board[row][col-1] === candyType && board[row][col-2] === candyType) ||
+                        (row >= 2 && board[row-1][col] === candyType && board[row-2][col] === candyType)
+                    );
+                    board[row][col] = candyType;
+                }
+            }
+        }
+
+        function renderBoard() {
+            const gameBoard = document.getElementById('game-board');
+            gameBoard.innerHTML = '';
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    const candy = document.createElement('div');
+                    candy.className = 'candy';
+                    candy.textContent = board[row][col];
+                    candy.dataset.row = row;
+                    candy.dataset.col = col;
+                    
+                    if (selectedCandy && selectedCandy.row === row && selectedCandy.col === col) {
+                        candy.classList.add('selected');
+                    }
+
+                    candy.addEventListener('click', () => handleCandyClick(row, col));
+                    gameBoard.appendChild(candy);
+                }
+            }
+        }
+
+        function handleCandyClick(row, col) {
+            if (isProcessing || moves <= 0) return;
+
+            if (!selectedCandy) {
+                selectedCandy = { row, col };
+                renderBoard();
+                showMessage(`Seçildi: ${board[row][col]}`, 'info');
+            } else {
+                const prevRow = selectedCandy.row;
+                const prevCol = selectedCandy.col;
+                selectedCandy = null;
+
+                if (prevRow === row && prevCol === col) {
+                    renderBoard();
+                    return;
+                }
+
+                if (isAdjacent(prevRow, prevCol, row, col)) {
+                    swapCandies(prevRow, prevCol, row, col);
+                } else {
+                    selectedCandy = { row, col };
+                    renderBoard();
+                    showMessage(`Seçildi: ${board[row][col]}`, 'info');
+                }
+            }
+        }
+
+        function isAdjacent(row1, col1, row2, col2) {
+            return (Math.abs(row1 - row2) === 1 && col1 === col2) ||
+                   (Math.abs(col1 - col2) === 1 && row1 === row2);
+        }
+
+        async function swapCandies(row1, col1, row2, col2) {
+            isProcessing = true;
+
+            // Swap in data
+            [board[row1][col1], board[row2][col2]] = [board[row2][col2], board[row1][col1]];
+            renderBoard();
+
+            await sleep(300);
+
+            const matches = findMatches();
+            
+            if (matches.length > 0) {
+                moves--;
+                updateUI();
+                await processMatches(matches);
+            } else {
+                // Swap back if no matches
+                [board[row1][col1], board[row2][col2]] = [board[row2][col2], board[row1][col1]];
+                renderBoard();
+                showMessage('Geçersiz hamle! Tekrar dene.', 'error');
+                isProcessing = false;
+            }
+        }
+
+        function findMatches() {
+            const matches = new Set();
+
+            // Check horizontal matches
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE - 2; col++) {
+                    const candy = board[row][col];
+                    if (candy && 
+                        board[row][col+1] === candy && 
+                        board[row][col+2] === candy) {
+                        matches.add(`${row},${col}`);
+                        matches.add(`${row},${col+1}`);
+                        matches.add(`${row},${col+2}`);
+                    }
+                }
+            }
+
+            // Check vertical matches
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                for (let row = 0; row < BOARD_SIZE - 2; row++) {
+                    const candy = board[row][col];
+                    if (candy && 
+                        board[row+1][col] === candy && 
+                        board[row+2][col] === candy) {
+                        matches.add(`${row},${col}`);
+                        matches.add(`${row+1},${col}`);
+                        matches.add(`${row+2},${col}`);
+                    }
+                }
+            }
+
+            return Array.from(matches).map(str => {
+                const [row, col] = str.split(',').map(Number);
+                return { row, col };
+            });
+        }
+
+        async function processMatches(matches) {
+            while (matches.length > 0) {
+                // Mark matched candies
+                const gameBoard = document.querySelectorAll('.candy');
+                matches.forEach(({ row, col }) => {
+                    const index = row * BOARD_SIZE + col;
+                    if (gameBoard[index]) {
+                        gameBoard[index].classList.add('matched');
+                    }
+                });
+
+                await sleep(300);
+
+                // Remove matched candies and add score
+                score += matches.length * 10;
+                if (matches.length > 3) {
+                    score += (matches.length - 3) * 20; // Bonus for larger matches
+                }
+
+                matches.forEach(({ row, col }) => {
+                    board[row][col] = null;
+                });
+
+                updateUI();
+                showMessage(`Harika! +${score} puan`, 'success');
+
+                // Drop candies
+                dropCandies();
+                renderBoard();
+                
+                await sleep(300);
+
+                // Fill empty spaces
+                fillEmptySpaces();
+                renderBoard();
+
+                await sleep(300);
+
+                // Check for new matches after filling
+                matches = findMatches();
+                if (matches.length > 0) {
+                    showMessage('Kombinasyon!', 'success');
+                }
+            }
+
+            checkGameState();
+            isProcessing = false;
+        }
+
+        function dropCandies() {
+            for (let col = 0; col < BOARD_SIZE; col++) {
+                let emptyRow = BOARD_SIZE - 1;
+                for (let row = BOARD_SIZE - 1; row >= 0; row--) {
+                    if (board[row][col] !== null) {
+                        board[emptyRow][col] = board[row][col];
+                        if (emptyRow !== row) {
+                            board[row][col] = null;
+                        }
+                        emptyRow--;
+                    }
+                }
+            }
+        }
+
+        function fillEmptySpaces() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (board[row][col] === null) {
+                        board[row][col] = CANDY_TYPES[Math.floor(Math.random() * CANDY_TYPES.length)];
+                    }
+                }
+            }
+        }
+
+        function checkGameState() {
+            if (moves <= 0) {
+                showMessage('Oyun Bitti! Toplam Skor: ' + score, 'error');
+                
+                if (score > highScore) {
+                    highScore = score;
+                    localStorage.setItem('candyHighScore', highScore);
+                    document.getElementById('high-score').textContent = highScore;
+                    showMessage('🎉 Yeni Rekor! 🎉', 'success');
+                }
+            } else if (!hasPossibleMoves()) {
+                showMessage('Hamle kalmadı! Tahta karıştırılıyor...', 'info');
+                setTimeout(() => {
+                    shuffleBoard();
+                    renderBoard();
+                }, 1500);
+            }
+        }
+
+        function hasPossibleMoves() {
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    // Check right swap
+                    if (col < BOARD_SIZE - 1) {
+                        [board[row][col], board[row][col+1]] = [board[row][col+1], board[row][col]];
+                        if (findMatches().length > 0) {
+                            [board[row][col], board[row][col+1]] = [board[row][col+1], board[row][col]];
+                            return true;
+                        }
+                        [board[row][col], board[row][col+1]] = [board[row][col+1], board[row][col]];
+                    }
+                    
+                    // Check down swap
+                    if (row < BOARD_SIZE - 1) {
+                        [board[row][col], board[row+1][col]] = [board[row+1][col], board[row][col]];
+                        if (findMatches().length > 0) {
+                            [board[row][col], board[row+1][col]] = [board[row+1][col], board[row][col]];
+                            return true;
+                        }
+                        [board[row][col], board[row+1][col]] = [board[row+1][col], board[row][col]];
+                    }
+                }
+            }
+            return false;
+        }
+
+        function shuffleBoard() {
+            do {
+                const allCandies = [];
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        allCandies.push(board[row][col]);
+                    }
+                }
+                
+                // Fisher-Yates shuffle
+                for (let i = allCandies.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [allCandies[i], allCandies[j]] = [allCandies[j], allCandies[i]];
+                }
+                
+                let idx = 0;
+                for (let row = 0; row < BOARD_SIZE; row++) {
+                    for (let col = 0; col < BOARD_SIZE; col++) {
+                        board[row][col] = allCandies[idx++];
+                    }
+                }
+            } while (!hasPossibleMoves());
+        }
+
+        function hint() {
+            if (isProcessing || moves <= 0) return;
+
+            for (let row = 0; row < BOARD_SIZE; row++) {
+                for (let col = 0; col < BOARD_SIZE; col++) {
+                    if (col < BOARD_SIZE - 1) {
+                        [board[row][col], board[row][col+1]] = [board[row][col+1], board[row][col]];
+                        if (findMatches().length > 0) {
+                            [board[row][col], board[row][col+1]] = [board[row][col+1], board[row][col]];
+                            selectedCandy = { row, col };
+                            renderBoard();
+                            showMessage(`İpucu: (${row+1}, ${col+1}) ve (${row+1}, ${col+2})`, 'info');
+                            return;
+                        }
+                        [board[row][col], board[row][col+1]] = [board[row][col+1], board[row][col]];
+                    }
+                }
+            }
+            showMessage('Hamle bulunamadı!', 'error');
+        }
+
+        function updateUI() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('moves').textContent = moves;
+        }
+
+        function showMessage(text, type) {
+            const messageEl = document.getElementById('message');
+            messageEl.textContent = text;
+            messageEl.className = `message ${type}`;
+        }
+
+        function resetGame() {
+            score = 0;
+            moves = 20;
+            selectedCandy = null;
+            isProcessing = false;
+            initBoard();
+            renderBoard();
+            updateUI();
+            showMessage('Yeni oyun başladı! Şekerleri eşleştirmeye başla!', 'info');
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // Initialize game
+        initBoard();
+        renderBoard();
+    </script>
+</body>
+</html>

@@ -1,55 +1,46 @@
 ```
-# Build artifacts and distributions
-dist/
-build/
-target/
+# Compiled and binary files
+*.pyc
+*.class
+*.o
+*.exe
+*.dll
+*.so
+*.a
+*.obj
+*.out
 
 # Dependencies
 node_modules/
+venv/
+.venv/
+__pycache__/
+dist/
+build/
+target/
+.gradle/
+.mypy_cache/
+.pytest_cache/
 
-# Environment files
-.env
-.env.local
-*.env.*
-
-# Editor/IDE files
+# Editors and IDEs
 .vscode/
 .idea/
 *.swp
 *.swo
 *.tmp
 
-# Logs
-*.log
-
-# OS specific
+# System and environment
 .DS_Store
 Thumbs.db
+.env
+.env.local
+*.env.*
 
-# Python specific
-__pycache__/
-*.pyc
-*.pyo
-*.pyd
-.Python
-env/
-venv/
-.venv/
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Coverage reports
+# Logs and coverage
+*.log
 coverage/
 htmlcov/
 .coverage
-
-# MyPy cache
-.mypy_cache/
-.dmypy.json
-dmypy.json
-
-# Pytest cache
-.pytest_cache/
 
 # Compressed files
 *.zip
@@ -74,7 +65,4 @@ dmypy.json
 *.tar.bz2
 *.tar.xz
 *.tar.zst
-
-# Netlify specific
-netlify/functions/node_modules/
 ```
